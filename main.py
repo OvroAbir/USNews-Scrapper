@@ -50,7 +50,7 @@ class GradSchool:
 
 def modifyparser(parser):
     defaulturl = "https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings"
-    default_output_file_name = "usnews.xls"
+    default_output_file_name = "usnews"
     default_pause_time = 2
     default_start_page = 1
     default_end_page = 3
@@ -97,8 +97,8 @@ def create_initial_request_params(urlstr, page_num=1):
 def cleanup(delete_output=False):
     if os.path.isdir(temp_folder):
         shutil.rmtree(temp_folder)
-    if delete_output and os.path.isfile(outputfilename):
-        os.remove(outputfilename)
+    if delete_output and os.path.isfile(args.outputfilename):
+        os.remove(args.outputfilename)
 
 def print_error(response):
     status_code = response.status_code
@@ -112,22 +112,34 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
     url, params, headers = req_params
     pause_time = max(args.pausetime, 1)
 
-    #cleanup(True)
+    start_page = int(start_page)
+    end_page = int(end_page)
+    max_page = 10000
+
+    cleanup(True)
     os.mkdir(temp_folder)
 
     for page in range(start_page, end_page+1):
         params["_page"] = str(page)
+     
+        if page > max_page:
+            break
+
         r = requests.get(url=url, params=params, headers=headers)
         
         if r.status_code != requests.codes.ok:
             print_error(r)
             return
         
+        print(get_file_name(page))
         f = open(get_file_name(page), "w+")
         response_json = r.json()
         json.dump(response_json, f)
         f.close()
         
+        if page == start_page:
+            max_page = int(response_json["data"]["totalPages"])
+
         time.sleep(pause_time)
 
 def init_headers():
@@ -154,16 +166,15 @@ def append_to_data_tablib(school_datas):
             data_tablib.append(g)
 
 def print_to_outputfile():
-    filename = args.outputfilename
+    filename = args.outputfilename + ".xls"
     with open(filename, "wb+") as f:
         f.write(data_tablib.export("xls"))
         f.close()
 
 def parse_json_from_file():
-    page = 1
+    page = int(args.startpage)
     while True:
         filename = get_file_name(page)
-        print(filename)
         if os.path.isfile(filename) == False:
             break
         f = open(filename, "r")
@@ -181,7 +192,7 @@ def main():
     
     args = parseargs()
     req_params = create_initial_request_params(args.url)
-    #scrape_and_save_data(req_params, args.startpage, args.endpage)
+    scrape_and_save_data(req_params, args.startpage, args.endpage)
     parse_json_from_file()
     print_to_outputfile()
     cleanup()
