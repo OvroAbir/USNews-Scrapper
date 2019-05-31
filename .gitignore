@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# My project ignores
+.vscode/
+temp/
+temp_/
+sample.txt
+usnews.xls
