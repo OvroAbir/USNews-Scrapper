@@ -9,6 +9,7 @@ from urllib import parse
 import os
 import shutil
 import tablib
+from tqdm import tqdm
 
 
 #Global Variables
@@ -178,18 +179,31 @@ def print_error(response):
     
     response.raise_for_status()
 
+def init_max_page(start_page, url, params, headers):
+    params["_page"] = str(start_page)
+    r = requests.get(url=url, params=params, headers=headers)
+    response_json = r.json()
+    time.sleep(1)
+    return int(response_json["data"]["totalPages"])
+
 def scrape_and_save_data(req_params, start_page=1, end_page=1):
     url, params, headers = req_params
     pause_time = max(args.pausetime, 1)
 
     start_page = int(start_page)
     end_page = int(end_page)
-    max_page = 10000
-
+    
     cleanup(True)
     os.mkdir(temp_folder)
+    
+    global max_page
+    max_page = init_max_page(start_page, url, params, headers)
+    end_page = min(max(1, end_page), max_page)
+    start_page = max(1, start_page)
 
-    for page in range(start_page, end_page+1):
+    print("\nCollecting data from U.S.News...")
+
+    for page in tqdm(range(start_page, end_page+1)):
         params["_page"] = str(page)
      
         if page > max_page:
@@ -201,17 +215,14 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
             print_error(r)
             return
         
-        print(r.url)
-        print(get_file_name(page))
+        #print(r.url)
+        #print(get_file_name(page))
         
         f = open(get_file_name(page), "w+")
         response_json = r.json()
         json.dump(response_json, f)
         f.close()
         
-        if page == start_page:
-            max_page = int(response_json["data"]["totalPages"])
-
         time.sleep(pause_time)
 
 def init_headers():
@@ -244,6 +255,7 @@ def print_to_outputfile():
         f.close()
 
 def parse_json_from_file():
+    #print("Generating Output file...")
     page = int(args.startpage)
     while True:
         filename = get_file_name(page)
@@ -267,5 +279,5 @@ def main():
     scrape_and_save_data(req_params, args.startpage, args.endpage)
     parse_json_from_file()
     print_to_outputfile()
-    #cleanup()
+    cleanup()
 main()
