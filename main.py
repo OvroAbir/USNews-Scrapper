@@ -4,6 +4,7 @@ import time
 from bs4 import BeautifulSoup
 import json
 import csv
+import queue
 from argparse import ArgumentParser
 from urllib import parse
 import os
@@ -269,6 +270,8 @@ def print_to_outputfile():
 
 def parse_json_from_file():
     #print("Generating Output file...")
+    locked_q = queue.Queue()
+
     page = int(args.startpage)
     while True:
         filename = get_temp_file_name(page)
@@ -280,9 +283,14 @@ def parse_json_from_file():
         school_datas = data["data"]["items"]
         append_to_data_tablib(school_datas)
 
+        if "itemsLocked" in data["data"] and data["data"].get("itemsLocked") != None:
+            locked_q.put(data["data"]["itemsLocked"])
+
         f.close()
         page += 1
         
+    while locked_q.empty() == False:
+        append_to_data_tablib(locked_q.get())
 
 def main():
     global args
