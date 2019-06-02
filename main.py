@@ -10,6 +10,7 @@ from urllib import parse
 import os
 import shutil
 import tablib
+import sys
 from tqdm import tqdm
 
 
@@ -200,6 +201,7 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
     start_page = max(1, start_page)
 
     print("\nCollecting data from U.S.News...")
+    sys.stdout.flush()
 
     for page in tqdm(range(start_page, end_page+1)):
         params["_page"] = str(page)
@@ -287,4 +289,7 @@ def main():
     parse_json_from_file()
     print_to_outputfile()
     cleanup()
-main()
+
+
+if __name__ == "__main__":
+    main()
