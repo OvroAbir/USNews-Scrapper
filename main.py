@@ -17,7 +17,7 @@ args = None
 temp_folder = "./temp"
 output_headers = []
 data_tablib = None
-max_page = 100
+
 
 class GradSchool:
     def __init__(self, name, state, city, rank, is_tied, score, school_url):
@@ -143,18 +143,30 @@ def extract_parameters_from_url(url):
     locations = parse_results.path.split("/")[2:]
     program = locations[0]
     specialty = locations[1][:locations[1].rfind("-")]
-    params = {
-        "program": locations[0],
+    location_params = {
+        "program": program,
         "specialty": specialty,
         "_page": "dummy"
     }
+    
+    querie_params = dict(parse.parse_qsl(parse_results.query))    
+    params = {**location_params, **querie_params}
+
     return params
+
+def modify_output_file_name(params):
+    adder = ""
+    for key in sorted(params.keys()):
+        if params[key] != None and key != "_page":
+            adder = adder + "_" + str(params[key])
+    global args
+    args.outputfilename = args.outputfilename + adder
 
 
 def extract_path_from_url(urlstr):
     return "https://www.usnews.com/best-graduate-schools/api/search"
 
-def get_file_name(page):
+def get_temp_file_name(page):
     return temp_folder + "/" + str(page).zfill(3) + ".txt"
 
 def create_initial_request_params(urlstr, page_num=1):
@@ -196,7 +208,6 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
     cleanup(True)
     os.mkdir(temp_folder)
     
-    global max_page
     max_page = init_max_page(start_page, url, params, headers)
     end_page = min(max(1, end_page), max_page)
     start_page = max(1, start_page)
@@ -218,12 +229,14 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
         #print(r.url)
         #print(get_file_name(page))
         
-        f = open(get_file_name(page), "w+")
+        f = open(get_temp_file_name(page), "w+")
         response_json = r.json()
         json.dump(response_json, f)
         f.close()
         
         time.sleep(pause_time)
+
+    modify_output_file_name(params)
 
 def init_headers():
     global output_headers
@@ -258,7 +271,7 @@ def parse_json_from_file():
     #print("Generating Output file...")
     page = int(args.startpage)
     while True:
-        filename = get_file_name(page)
+        filename = get_temp_file_name(page)
         if os.path.isfile(filename) == False:
             break
         f = open(filename, "r")
