@@ -115,7 +115,7 @@ def parseargs():
     args = parser.parse_args()
 
     return args
-'''
+
 def extract_parameters_from_url(url):
     location_params = {}
     parse_results = parse.urlsplit(url)
@@ -124,36 +124,20 @@ def extract_parameters_from_url(url):
     program = locations[0]
     if program != "search":
         location_params["program"] = program
-
+    
     try:
         specialty = locations[1][:locations[1].rfind("-")]
-        location_params["speciality"] = specialty
+        location_params["specialty"] = specialty
     except:
         pass
-
+    
     location_params["_page"] = "dummy"
 
     querie_params = dict(parse.parse_qsl(parse_results.query))    
     params = {**location_params, **querie_params}
 
     return params
-'''
-def extract_parameters_from_url(url):
-    parse_results = parse.urlsplit(url)
-    
-    locations = parse_results.path.split("/")[2:]
-    program = locations[0]
-    specialty = locations[1][:locations[1].rfind("-")]
-    location_params = {
-        "program": program,
-        "specialty": specialty,
-        "_page": "dummy"
-    }
-    
-    querie_params = dict(parse.parse_qsl(parse_results.query))    
-    params = {**location_params, **querie_params}
 
-    return params
 
 def modify_output_file_name(params):
     adder = ""
@@ -173,9 +157,11 @@ def get_temp_file_name(page):
 def create_initial_request_params(urlstr, page_num=1):
     url = extract_path_from_url(urlstr)
     params = extract_parameters_from_url(urlstr)
+
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     }
+
     return url, params, headers
 
 def cleanup(delete_output=False):
