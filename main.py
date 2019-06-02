@@ -5,11 +5,10 @@ from bs4 import BeautifulSoup
 import json
 import csv
 from argparse import ArgumentParser
-from urllib.parse import urlparse
+from urllib import parse
 import os
 import shutil
 import tablib
-
 
 
 #Global Variables
@@ -17,31 +16,78 @@ args = None
 temp_folder = "./temp"
 output_headers = []
 data_tablib = None
-
+max_page = 100
 
 class GradSchool:
     def __init__(self, name, state, city, rank, is_tied, score, school_url):
         self.name = name
         self.state = state
         self.city = city
-        self.rank = int(rank)
+        
+        try:
+            self.rank = int(rank)
+        except (ValueError, TypeError) as e:
+            self.rank = rank
+    
         self.is_tied = is_tied
-        self.score = float(score)
+        
+        try:
+            self.score = float(score)
+        except (ValueError, TypeError) as e:
+            self.score = score
+
         self.school_url = school_url
+
     
     @classmethod
     def getFromJSON(cls, json_data):
-        return cls(json_data["name"], json_data["state"], json_data["city"],
-        json_data["ranking"]["display_rank"], json_data["ranking"]["is_tied"], 
-        json_data["schoolData"]["c_avg_acad_rep_score"], json_data["url"])
+        name = state = city = rank = is_tied = score = url = None
+        
+        try:        
+            name = json_data["name"]
+        except KeyError:
+            pass
+
+        try:
+            state = json_data["state"]
+        except KeyError:
+            pass
+        
+        try:
+            city = json_data["city"]
+        except KeyError:
+            pass
+            
+
+        try:
+            rank = json_data["ranking"]["display_rank"]
+        except KeyError:
+            pass
+        
+        try:
+            is_tied = json_data["ranking"]["is_tied"]
+        except KeyError:
+            pass
+        
+        try:
+            score = json_data["schoolData"]["c_avg_acad_rep_score"]
+        except KeyError:
+            pass
+        
+        try:
+            url = json_data["url"]
+        except KeyError:
+            pass
+
+        return cls(name, state, city, rank, is_tied, score, url)
 
     def __iter__(self):
-        yield int(self.rank)
+        yield self.rank
         yield self.name
         yield self.state
         yield self.city
         #yield self.is_tied
-        yield float(self.score)
+        yield self.score
         yield self.school_url
 
     def __str__(self):
@@ -53,9 +99,9 @@ def modifyparser(parser):
     default_output_file_name = "usnews"
     default_pause_time = 2
     default_start_page = 1
-    default_end_page = 3
+    default_end_page = 100
 
-    parser.add_argument("-u", "--url", help="The address to collect data from", dest="url", default=defaulturl)
+    parser.add_argument("-u", "--url", help="The address to collect data from. Put the URL within qoutes i.e. \" or \'", dest="url", default=defaulturl, type=str)
     parser.add_argument("-o", help="The output file name without extension", dest="outputfilename", default=default_output_file_name)
     parser.add_argument("-p", "--pause", help="The pause time between loading pages from usnews", dest="pausetime", default=default_pause_time)
     parser.add_argument("--from", help="The page number from which the scrapper starts working", dest="startpage", default=default_start_page)
@@ -67,10 +113,33 @@ def parseargs():
     args = parser.parse_args()
 
     return args
-
+'''
 def extract_parameters_from_url(url):
-    parse = urlparse(url)
-    locations = parse.path.split("/")[2:]
+    location_params = {}
+    parse_results = parse.urlsplit(url)
+    
+    locations = parse_results.path.split("/")[2:]
+    program = locations[0]
+    if program != "search":
+        location_params["program"] = program
+
+    try:
+        specialty = locations[1][:locations[1].rfind("-")]
+        location_params["speciality"] = specialty
+    except:
+        pass
+
+    location_params["_page"] = "dummy"
+
+    querie_params = dict(parse.parse_qsl(parse_results.query))    
+    params = {**location_params, **querie_params}
+
+    return params
+'''
+def extract_parameters_from_url(url):
+    parse_results = parse.urlsplit(url)
+    
+    locations = parse_results.path.split("/")[2:]
     program = locations[0]
     specialty = locations[1][:locations[1].rfind("-")]
     params = {
@@ -79,6 +148,7 @@ def extract_parameters_from_url(url):
         "_page": "dummy"
     }
     return params
+
 
 def extract_path_from_url(urlstr):
     return "https://www.usnews.com/best-graduate-schools/api/search"
@@ -131,7 +201,9 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
             print_error(r)
             return
         
+        print(r.url)
         print(get_file_name(page))
+        
         f = open(get_file_name(page), "w+")
         response_json = r.json()
         json.dump(response_json, f)
@@ -195,5 +267,5 @@ def main():
     scrape_and_save_data(req_params, args.startpage, args.endpage)
     parse_json_from_file()
     print_to_outputfile()
-    cleanup()
+    #cleanup()
 main()
