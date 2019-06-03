@@ -1,9 +1,7 @@
 import requests
 import urllib.request
 import time
-from bs4 import BeautifulSoup
 import json
-import csv
 import queue
 from argparse import ArgumentParser
 from urllib import parse
