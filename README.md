@@ -33,15 +33,14 @@ optional arguments:
 
 ## Examples
 
+Copy the address of the page from usnews website and in the Command Prompt and enter this command -
+
 ```bash
-python main.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings?location=New%20York" -o file_name -p 2 --from=2 --to=5 
+cd USNews-Scrapper
+python main.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings" -o file_name -p 2 --from=2 --to=5 
 ```
 The output file will be saved in current directory under the name of `file_name_*.xls`. 
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+## Authors
 
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+* **Joy Ghosh** - [OvroAbir](https://github.com/OvroAbir)
