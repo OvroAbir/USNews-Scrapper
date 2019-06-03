@@ -104,7 +104,7 @@ def modifyparser(parser):
 
     parser.add_argument("-u", "--url", help="The address to collect data from. Put the URL within qoutes i.e. \" or \'", dest="url", default=defaulturl, type=str)
     parser.add_argument("-o", help="The output file name without extension", dest="outputfilename", default=default_output_file_name)
-    parser.add_argument("-p", "--pause", help="The pause time between loading pages from usnews", dest="pausetime", default=default_pause_time)
+    parser.add_argument("-p", "--pause", help="The pause time between loading pages from usnews. Minimum pause time is 1s.", dest="pausetime", default=default_pause_time)
     parser.add_argument("--from", help="The page number from which the scrapper starts working", dest="startpage", default=default_start_page)
     parser.add_argument("--to", help="The page number to which the scrapper works", dest="endpage", default=default_end_page)
     
@@ -169,7 +169,7 @@ def cleanup(delete_output=False):
     if delete_output and os.path.isfile(args.outputfilename):
         os.remove(args.outputfilename)
 
-def print_error(response):
+def print_request_error(response):
     status_code = response.status_code
     url = response.url
     print("An error occured while processing the url :\n" + url)
@@ -177,26 +177,31 @@ def print_error(response):
     
     response.raise_for_status()
 
-def init_max_page(start_page, url, params, headers):
-    params["_page"] = str(start_page)
+def init_max_page(url, params, headers):
+    params["_page"] = "1"
     r = requests.get(url=url, params=params, headers=headers)
     response_json = r.json()
     time.sleep(1)
     return int(response_json["data"]["totalPages"])
 
+def decide_start_and_end_page(max_page, start_page, end_page):
+    end_page = min(max(1, end_page), max_page)
+    start_page = max(1, start_page)
+
+    if start_page > end_page:
+        start_page = end_page = min(start_page, end_page)
+
+    return (start_page, end_page)
+
+
 def scrape_and_save_data(req_params, start_page=1, end_page=1):
     url, params, headers = req_params
-    pause_time = max(args.pausetime, 1)
-
-    start_page = int(start_page)
-    end_page = int(end_page)
     
     cleanup(True)
     os.mkdir(temp_folder)
     
-    max_page = init_max_page(start_page, url, params, headers)
-    end_page = min(max(1, end_page), max_page)
-    start_page = max(1, start_page)
+    max_page = init_max_page(url, params, headers)
+    start_page, end_page = decide_start_and_end_page(max_page, start_page, end_page)
 
     print("\nCollecting data from U.S.News...")
     sys.stdout.flush()
@@ -208,20 +213,17 @@ def scrape_and_save_data(req_params, start_page=1, end_page=1):
             break
 
         r = requests.get(url=url, params=params, headers=headers)
-        
+
         if r.status_code != requests.codes.ok:
-            print_error(r)
+            print_request_error(r)
             return
-        
-        #print(r.url)
-        #print(get_file_name(page))
         
         f = open(get_temp_file_name(page), "w+")
         response_json = r.json()
         json.dump(response_json, f)
         f.close()
         
-        time.sleep(pause_time)
+        time.sleep(args.pausetime)
 
     modify_output_file_name(params)
 
@@ -249,6 +251,10 @@ def append_to_data_tablib(school_datas):
             data_tablib.append(g)
 
 def print_to_outputfile():
+    if data_tablib == None:
+        print("Data Tablib is None. Some error happened")
+        return
+
     filename = args.outputfilename + ".xls"
     with open(filename, "wb+") as f:
         f.write(data_tablib.export("xls"))
@@ -258,11 +264,10 @@ def parse_json_from_file():
     #print("Generating Output file...")
     locked_q = queue.Queue()
 
-    page = int(args.startpage)
-    while True:
-        filename = get_temp_file_name(page)
+    for filename in sorted(os.listdir(temp_folder)):
+        filename = temp_folder + "/" + filename
         if os.path.isfile(filename) == False:
-            break
+            continue
         f = open(filename, "r")
         
         data = json.load(f)
@@ -273,20 +278,37 @@ def parse_json_from_file():
             locked_q.put(data["data"]["itemsLocked"])
 
         f.close()
-        page += 1
         
     while locked_q.empty() == False:
         append_to_data_tablib(locked_q.get())
+
+def convert_args():
+    global args
+    args.startpage = int(args.startpage)
+    args.endpage = int(args.endpage)
+    args.pausetime = int(args.pausetime)
+    args.pausetime = max(args.pausetime, 1)
+
+def open_output_file():
+    filename = args.outputfilename + ".xls"
+    os.startfile(filename)
 
 def main():
     global args
     
     args = parseargs()
+    convert_args()
+
     req_params = create_initial_request_params(args.url)
+
     scrape_and_save_data(req_params, args.startpage, args.endpage)
+
     parse_json_from_file()
     print_to_outputfile()
+
     cleanup()
+    open_output_file()
+
 
 
 if __name__ == "__main__":
