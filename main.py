@@ -102,11 +102,17 @@ def modifyparser(parser):
     default_start_page = 1
     default_end_page = 100
 
-    parser.add_argument("-u", "--url", help="The address to collect data from. Put the URL within qoutes i.e. \" or \'", dest="url", default=defaulturl, type=str)
-    parser.add_argument("-o", help="The output file name without extension", dest="outputfilename", default=default_output_file_name)
-    parser.add_argument("-p", "--pause", help="The pause time between loading pages from usnews. Minimum pause time is 1s.", dest="pausetime", default=default_pause_time)
-    parser.add_argument("--from", help="The page number from which the scrapper starts working", dest="startpage", default=default_start_page)
-    parser.add_argument("--to", help="The page number to which the scrapper works", dest="endpage", default=default_end_page)
+    url_help = "The usnews address to collect data from. Put the URL within qoutes i.e. \" or \' ."
+    output_help = "The output file name without extension."
+    pause_help = "The pause time between loading pages from usnews. Minimum pause time is 1 sec."
+    from_help = "The page number from which the scrapper starts working."
+    to_help = "The page number to which the scrapper works."
+
+    parser.add_argument("-u", "--url", help=url_help, dest="url", default=defaulturl, type=str, required=True)
+    parser.add_argument("-o", help=output_help, dest="outputfilename", default=default_output_file_name)
+    parser.add_argument("-p", "--pause", help=pause_help, dest="pausetime", default=default_pause_time, type=int)
+    parser.add_argument("--from", help=from_help, dest="startpage", default=default_start_page, type=int)
+    parser.add_argument("--to", help=to_help, dest="endpage", default=default_end_page, type=int)
     
 def parseargs():
     parser = ArgumentParser(description="Collects data from usnews and generates excel file")
@@ -282,13 +288,30 @@ def parse_json_from_file():
     while locked_q.empty() == False:
         append_to_data_tablib(locked_q.get())
 
-def convert_args():
+def convert_and_check_args():
     global args
     args.startpage = int(args.startpage)
     args.endpage = int(args.endpage)
     args.pausetime = int(args.pausetime)
-    args.pausetime = max(args.pausetime, 1)
+    
+    args.pausetime = min(max(args.pausetime, 1), 10)
+    args.startpage = max(1, args.startpage)
+    args.endpage = max(args.startpage, args.endpage)
 
+    if args.outputfilename.endswith("xls"):
+        args.outputfilename = args.outputfilename[:-3]
+    #if (args.url[0] not in ["\'", "\""]) or (args.url[:1] not in ["\'", "\""]):
+    #    print("The URL must start and end with \" or \'")
+    #    sys.exit()
+
+    if "www.usnews.com/best-graduate-schools" not in args.url:
+        print("Sorry. Only Graduate School rankings from usnews are supported for now.")
+        sys.exit()
+    
+    msg = "Collecting data from {},\nFrom page {} to page {} with pause time of {} sec."
+    print(msg.format(args.url, args.startpage, args.endpage, args.pausetime))
+
+    
 def open_output_file():
     filename = args.outputfilename + ".xls"
     os.startfile(filename)
@@ -297,7 +320,7 @@ def main():
     global args
     
     args = parseargs()
-    convert_args()
+    convert_and_check_args()
 
     req_params = create_initial_request_params(args.url)
 
@@ -308,7 +331,6 @@ def main():
 
     cleanup()
     open_output_file()
-
 
 
 if __name__ == "__main__":
