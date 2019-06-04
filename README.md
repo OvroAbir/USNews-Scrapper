@@ -30,7 +30,6 @@ optional arguments:
   --from STARTPAGE      		        The page number from which the scrapper starts
                         		        working.
   --to ENDPAGE          		        The page number to which the scrapper works.
-
 ```
 
 ## Examples
@@ -39,7 +38,8 @@ Copy the address of the page from usnews website and in the Command Prompt and e
 
 ```bash
 $ cd USNews-Scrapper
-$ python main.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings" -o file_name -p 2 --from=2 --to=5 
+$ python main.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings"
+                 -o file_name -p 2 --from=2 --to=5 
 ```
 The output file will be saved in current directory under the name of `file_name_*.xls`. 
 
