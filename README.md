@@ -1,6 +1,6 @@
 # U.S.News-Scrapper
 
-U.S.News Scrapper is a Python library that collect data from the website of [usnews](https://www.usnews.com/best-graduate-schools) and output those data in a file for offline usage. Till now, it is only capable of collecting graduate schools data.
+U.S.News Scrapper is a Python library that collect data from the website of [usnews](https://www.usnews.com/best-graduate-schools) and output those data in a file for offline usage. Till now, it is only capable of collecting graduate schools data and output it in `.xls` format.
 
 ## Setup
 
@@ -14,20 +14,22 @@ $ pip install -r requirements.txt
 ## Usage
 
 ```
-usage: python main.py [-h] [-u URL] [-o OUTPUTFILENAME] [-p PAUSETIME]
+usage: python main.py [-h] -u URL [-o OUTPUTFILENAME] [-p PAUSETIME]
                [--from STARTPAGE] [--to ENDPAGE]
-
+```
 Collects data from usnews and generates excel file
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -u URL, --url URL     The address to collect data from. Put the URL within
-                        qoutes i.e. " or '
-  -o OUTPUTFILENAME     The output file name without extension
-  -p PAUSETIME, --pause PAUSETIME
-                        The pause time between loading pages from usnews
-  --from STARTPAGE      The page number from which the scrapper starts working
-  --to ENDPAGE          The page number to which the scrapper works
+```
+  -h, --help            		        Show this help message and exit
+  -u URL, --url URL     		        The usnews address to collect data from. Put the URL
+                        		        within qoutes i.e. " or ' .
+  -o OUTPUTFILENAME     		        The output file name without extension.
+  -p PAUSETIME, --pause PAUSETIME   The pause time between loading pages from usnews.
+                        		        Minimum pause time is 1 sec.
+  --from STARTPAGE      		        The page number from which the scrapper starts
+                        		        working.
+  --to ENDPAGE          		        The page number to which the scrapper works.
 
 ```
 
