@@ -200,23 +200,17 @@ def decide_start_and_end_page(max_page, start_page, end_page):
     return (start_page, end_page)
 
 
-def scrape_and_save_data(req_params, start_page=1, end_page=1):
+def scrape_and_save_data(req_params):
     url, params, headers = req_params
     
     cleanup(True)
     os.mkdir(temp_folder)
     
-    max_page = init_max_page(url, params, headers)
-    start_page, end_page = decide_start_and_end_page(max_page, start_page, end_page)
-
     print("\nCollecting data from U.S.News...")
     sys.stdout.flush()
 
-    for page in tqdm(range(start_page, end_page+1)):
+    for page in tqdm(range(args.startpage, args.endpage+1)):
         params["_page"] = str(page)
-     
-        if page > max_page:
-            break
 
         r = requests.get(url=url, params=params, headers=headers)
 
@@ -288,7 +282,7 @@ def parse_json_from_file():
     while locked_q.empty() == False:
         append_to_data_tablib(locked_q.get())
 
-def convert_and_check_args():
+def convert_and_check_args(req_params):
     global args
     args.startpage = int(args.startpage)
     args.endpage = int(args.endpage)
@@ -300,6 +294,12 @@ def convert_and_check_args():
 
     if args.outputfilename.endswith("xls"):
         args.outputfilename = args.outputfilename[:-3]
+   
+    url, params, headers = req_params
+    max_page = init_max_page(url, params, headers)
+    args.startpage, args.endpage = decide_start_and_end_page(max_page, args.startpage, args.endpage)
+
+
     #if (args.url[0] not in ["\'", "\""]) or (args.url[:1] not in ["\'", "\""]):
     #    print("The URL must start and end with \" or \'")
     #    sys.exit()
@@ -308,7 +308,7 @@ def convert_and_check_args():
         print("Sorry. Only Graduate School rankings from usnews are supported for now.")
         sys.exit()
     
-    msg = "Collecting data from {},\nFrom page {} to page {} with pause time of {} sec."
+    msg = "Collecting data from \"{}\" \nFrom page {} to page {} with pause time of {} sec."
     print(msg.format(args.url, args.startpage, args.endpage, args.pausetime))
 
     
@@ -320,11 +320,10 @@ def main():
     global args
     
     args = parseargs()
-    convert_and_check_args()
-
     req_params = create_initial_request_params(args.url)
+    convert_and_check_args(req_params)
 
-    scrape_and_save_data(req_params, args.startpage, args.endpage)
+    scrape_and_save_data(req_params)
 
     parse_json_from_file()
     print_to_outputfile()
