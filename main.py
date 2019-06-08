@@ -15,8 +15,8 @@ from tqdm import tqdm
 #Global Variables
 args = None
 temp_folder = "./temp"
-output_headers = []
 data_tablib = None
+output_sheet_name = None
 
 
 class GradSchool:
@@ -124,19 +124,26 @@ def parseargs():
 def extract_parameters_from_url(url):
     location_params = {}
     parse_results = parse.urlsplit(url)
+
+    global output_sheet_name
+    output_sheet_name = "Ranking"
     
     locations = parse_results.path.split("/")[2:]
     program = locations[0]
     if program != "search":
         location_params["program"] = program
+        output_sheet_name = program
     
     try:
         specialty = locations[1][:locations[1].rfind("-")]
         location_params["specialty"] = specialty
+        output_sheet_name = specialty
     except:
         pass
     
     location_params["_page"] = "dummy"
+
+    output_sheet_name = output_sheet_name.replace("-", " ").title()
 
     querie_params = dict(parse.parse_qsl(parse_results.query))    
     params = {**location_params, **querie_params}
@@ -227,28 +234,21 @@ def scrape_and_save_data(req_params):
 
     modify_output_file_name(params)
 
-def init_headers():
-    global output_headers
+def get_column_headers():
     output_headers = ["Rank", "Graduate School Name", "State", "City", "Score", "US News URL"]
+    return tuple(output_headers)
 
 def append_to_data_tablib(school_datas):
     global data_tablib
-    header_existed = True
 
-    if len(output_headers) == 0:
-        header_existed = False
-        init_headers()
-        data_tablib = tablib.Dataset()
+    if data_tablib == None:
+        headers = get_column_headers()
+        data_tablib = tablib.Dataset(title=output_sheet_name)
+        data_tablib.headers = headers
 
     for school_data in school_datas:
         g = tuple(GradSchool.getFromJSON(school_data))
-        if header_existed == False:
-            headers_tuple = tuple(output_headers)
-            data_tablib.append(g)
-            data_tablib = tablib.Dataset(*data_tablib, headers=headers_tuple)
-            header_existed = True
-        else:
-            data_tablib.append(g)
+        data_tablib.append(g)
 
 def print_to_outputfile():
     if data_tablib == None:
