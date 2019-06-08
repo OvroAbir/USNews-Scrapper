@@ -16,7 +16,6 @@ from tqdm import tqdm
 args = None
 temp_folder = "./temp"
 data_tablib = None
-output_sheet_name = None
 
 
 class GradSchool:
@@ -125,7 +124,6 @@ def extract_parameters_from_url(url):
     location_params = {}
     parse_results = parse.urlsplit(url)
 
-    global output_sheet_name
     output_sheet_name = "Ranking"
     
     locations = parse_results.path.split("/")[2:]
@@ -143,7 +141,8 @@ def extract_parameters_from_url(url):
     
     location_params["_page"] = "dummy"
 
-    output_sheet_name = output_sheet_name.replace("-", " ").title()
+    global args
+    args["output_sheet_name"] = output_sheet_name.replace("-", " ").title()
 
     querie_params = dict(parse.parse_qsl(parse_results.query))    
     params = {**location_params, **querie_params}
@@ -152,12 +151,15 @@ def extract_parameters_from_url(url):
 
 
 def modify_output_file_name(params):
+    global args
     adder = ""
+
     for key in sorted(params.keys()):
         if params[key] != None and key != "_page":
             adder = adder + "_" + str(params[key])
-    global args
-    args.outputfilename = args.outputfilename + adder
+    adder = adder + "_" + str(args["year"])
+    
+    args["outputfilename"] = args["outputfilename"] + adder
 
 
 def extract_path_from_url(urlstr):
@@ -179,8 +181,8 @@ def create_initial_request_params(urlstr, page_num=1):
 def cleanup(delete_output=False):
     if os.path.isdir(temp_folder):
         shutil.rmtree(temp_folder)
-    if delete_output and os.path.isfile(args.outputfilename):
-        os.remove(args.outputfilename)
+    if delete_output and os.path.isfile(args["outputfilename"]):
+        os.remove(args["outputfilename"])
 
 def print_request_error(response):
     status_code = response.status_code
@@ -188,11 +190,16 @@ def print_request_error(response):
     print("An error occured while processing the url :\n" + url)
     print("Status Code : " + str(status_code) + "\n\n")
     
-    response.raise_for_status()
+    #response.raise_for_status()
 
 def get_initial_infos(url, params, headers):
     params["_page"] = "1"
     r = requests.get(url=url, params=params, headers=headers)
+
+    if r.status_code != requests.codes.ok:
+        print_request_error(r)
+        return
+
     response_json = r.json()
     time.sleep(1)
     max_page = int(response_json["data"]["totalPages"])
@@ -220,7 +227,7 @@ def scrape_and_save_data(req_params):
     print("\nCollecting data from U.S.News...")
     sys.stdout.flush()
 
-    for page in tqdm(range(args.startpage, args.endpage+1)):
+    for page in tqdm(range(args["startpage"], args["endpage"]+1)):
         params["_page"] = str(page)
 
         r = requests.get(url=url, params=params, headers=headers)
@@ -234,7 +241,7 @@ def scrape_and_save_data(req_params):
         json.dump(response_json, f)
         f.close()
         
-        time.sleep(args.pausetime)
+        time.sleep(args["pausetime"])
 
     modify_output_file_name(params)
 
@@ -247,7 +254,7 @@ def append_to_data_tablib(school_datas):
 
     if data_tablib == None:
         headers = get_column_headers()
-        data_tablib = tablib.Dataset(title=output_sheet_name)
+        data_tablib = tablib.Dataset(title=args["output_sheet_name"])
         data_tablib.headers = headers
 
     for school_data in school_datas:
@@ -257,9 +264,9 @@ def append_to_data_tablib(school_datas):
 def print_to_outputfile():
     if data_tablib == None:
         print("Data Tablib is None. Some error happened")
-        return
+        sys.exit()
 
-    filename = args.outputfilename + ".xls"
+    filename = args["outputfilename"] = args["outputfilename"] + ".xls"
     with open(filename, "wb+") as f:
         f.write(data_tablib.export("xls"))
         f.close()
@@ -289,43 +296,43 @@ def parse_json_from_file():
 
 def convert_and_check_args(req_params):
     global args
-    args.startpage = int(args.startpage)
-    args.endpage = int(args.endpage)
-    args.pausetime = int(args.pausetime)
+    args["startpage"] = int(args["startpage"])
+    args["endpage"] = int(args["endpage"])
+    args["pausetime"] = int(args["pausetime"])
     
-    args.pausetime = min(max(args.pausetime, 1), 10)
-    args.startpage = max(1, args.startpage)
-    args.endpage = max(args.startpage, args.endpage)
+    args["pausetime"] = min(max(args["pausetime"], 1), 10)
+    args["startpage"] = max(1, args["startpage"])
+    args["endpage"] = max(args["startpage"], args["endpage"])
 
     url, params, headers = req_params
-    max_page, year = get_initial_infos(url, params, headers)
-    args.startpage, args.endpage = decide_start_and_end_page(max_page, args.startpage, args.endpage)
+    max_page, args["year"] = get_initial_infos(url, params, headers)
+    args["startpage"], args["endpage"] = decide_start_and_end_page(max_page, args["startpage"], args["endpage"])
 
-    if args.outputfilename.endswith("xls"):
-        args.outputfilename = args.outputfilename[:-3]
-    args.outputfilename += ("_" + str(year))
-
+    if args["outputfilename"].endswith("xls"):
+        args["outputfilename"] = args["outputfilename"][:-3]
+    
     #if (args.url[0] not in ["\'", "\""]) or (args.url[:1] not in ["\'", "\""]):
     #    print("The URL must start and end with \" or \'")
     #    sys.exit()
 
-    if "www.usnews.com/best-graduate-schools" not in args.url:
+    if "www.usnews.com/best-graduate-schools" not in args["url"]:
         print("Sorry. Only Graduate School rankings from usnews are supported for now.")
         sys.exit()
     
     msg = "Collecting data from \"{}\" \nFrom page {} to page {} with pause time of {} sec."
-    print(msg.format(args.url, args.startpage, args.endpage, args.pausetime))
+    print(msg.format(args["url"], args["startpage"], args["endpage"], args["pausetime"]))
 
     
 def open_output_file():
-    filename = args.outputfilename + ".xls"
+    filename = args["outputfilename"]
     os.startfile(filename)
+
 
 def main():
     global args
+    args = vars(parseargs())
     
-    args = parseargs()
-    req_params = create_initial_request_params(args.url)
+    req_params = create_initial_request_params(args["url"])
     convert_and_check_args(req_params)
 
     scrape_and_save_data(req_params)
