@@ -190,12 +190,16 @@ def print_request_error(response):
     
     response.raise_for_status()
 
-def init_max_page(url, params, headers):
+def get_initial_infos(url, params, headers):
     params["_page"] = "1"
     r = requests.get(url=url, params=params, headers=headers)
     response_json = r.json()
     time.sleep(1)
-    return int(response_json["data"]["totalPages"])
+    max_page = int(response_json["data"]["totalPages"])
+    year = response_json["data"]["hero"]["year"]
+
+    return max_page, year
+
 
 def decide_start_and_end_page(max_page, start_page, end_page):
     end_page = min(max(1, end_page), max_page)
@@ -271,6 +275,7 @@ def parse_json_from_file():
         f = open(filename, "r")
         
         data = json.load(f)
+        
         school_datas = data["data"]["items"]
         append_to_data_tablib(school_datas)
 
@@ -292,13 +297,13 @@ def convert_and_check_args(req_params):
     args.startpage = max(1, args.startpage)
     args.endpage = max(args.startpage, args.endpage)
 
-    if args.outputfilename.endswith("xls"):
-        args.outputfilename = args.outputfilename[:-3]
-   
     url, params, headers = req_params
-    max_page = init_max_page(url, params, headers)
+    max_page, year = get_initial_infos(url, params, headers)
     args.startpage, args.endpage = decide_start_and_end_page(max_page, args.startpage, args.endpage)
 
+    if args.outputfilename.endswith("xls"):
+        args.outputfilename = args.outputfilename[:-3]
+    args.outputfilename += ("_" + str(year))
 
     #if (args.url[0] not in ["\'", "\""]) or (args.url[:1] not in ["\'", "\""]):
     #    print("The URL must start and end with \" or \'")
