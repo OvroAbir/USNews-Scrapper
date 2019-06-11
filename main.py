@@ -112,11 +112,22 @@ def modifyparser(parser):
     parser.add_argument("-p", "--pause", help=pause_help, dest="pausetime", default=default_pause_time, type=int)
     parser.add_argument("--from", help=from_help, dest="startpage", default=default_start_page, type=int)
     parser.add_argument("--to", help=to_help, dest="endpage", default=default_end_page, type=int)
-    
-def parseargs():
+
+def get_parser_for_parsing():
     parser = ArgumentParser(description="Collects data from usnews and generates excel file")
     modifyparser(parser)
+
+    return parser
+
+def parseargs_from_cmd():
+    parser = get_parser_for_parsing()
     args = parser.parse_args()
+
+    return args
+
+def parseargs_from_function_call(arguments):
+    parser = get_parser_for_parsing()
+    args = parser.parse_args(arguments)
 
     return args
 
@@ -328,10 +339,7 @@ def open_output_file():
     os.startfile(filename)
 
 
-def main():
-    global args
-    args = vars(parseargs())
-    
+def run_scrapping_and_saving():
     req_params = create_initial_request_params(args["url"])
     convert_and_check_args(req_params)
 
@@ -342,6 +350,41 @@ def main():
 
     cleanup()
     open_output_file()
+
+def create_argument_from_values(url, output_file_name, pause_time, from_page, to_page):
+    arguments = []
+    arguments.append("--url")
+    arguments.append(url)
+
+    if output_file_name is not None:
+        arguments.append("-o")
+        arguments.append(str(output_file_name))
+
+    if pause_time is not None:
+        arguments.append("--pause")
+        arguments.append(str(pause_time))
+
+    if from_page is not None:
+        arguments.append("--from")
+        arguments.append(str(from_page))
+
+    if to_page is not None:
+        arguments.append("--to")
+        arguments.append(str(to_page))
+    
+    return arguments
+
+def usnews_scrapper(url, output_file_name=None, pause_time=None, from_page=None, to_page=None):
+    arguments = create_argument_from_values(url, output_file_name, pause_time, from_page, to_page)
+    
+    global args
+    args = vars(parseargs_from_function_call(arguments))
+    run_scrapping_and_saving()
+
+def main():
+    global args
+    args = vars(parseargs_from_cmd())
+    run_scrapping_and_saving()
 
 
 if __name__ == "__main__":
