@@ -395,7 +395,7 @@ def get_outfile_name_with_working_dir():
     return os.getcwd() + "\\" + args["outputfilename"]
 
 def usnews_scrapper(url:str, output_file_name:str=None, pause_time:int=None, from_page:int=None, to_page:int=None) -> str:
-    """ Collects data from usnews website and outputs a .xls file.
+    """ Collects data from usnews website and outputs a (.xls) file.
 
     Parameters
     ----------

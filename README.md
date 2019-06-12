@@ -44,4 +44,4 @@ The output file will be saved in current directory under the name of `file_name_
 
 ## Authors
 
-* **Joy Ghosh** - [OvroAbir](https://github.com/OvroAbir)
+* **Joy Ghosh** - [www.ijoyghosh.com](https://www.ijoyghosh.com/)
