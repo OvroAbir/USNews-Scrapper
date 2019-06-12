@@ -1,6 +1,6 @@
 # U.S.News-Scrapper
 
-U.S.News Scrapper is a Python library that collect data from the website of [usnews](https://www.usnews.com/best-graduate-schools) and output those data in a file for offline usage. Till now, it is only capable of collecting graduate schools data and output it in `.xls` format.
+U.S.News Scrapper is a Python library that collect data from the website of [usnews](https://www.usnews.com/best-graduate-schools) and output those data in a file for offline usage. Till now, it is only capable of collecting graduate schools data and output it in `.xls` format. After generating the `.xls` file, it will be opened by default excel file opener.
 
 ## Setup
 

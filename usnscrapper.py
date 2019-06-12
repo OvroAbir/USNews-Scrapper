@@ -1,3 +1,17 @@
+"""USNews-Scrapper
+
+This script is built to collect informations about Grad Schools from 
+https://www.usnews.com/best-graduate-schools. 
+
+This script takes the url as input and generates output as (.xls) file.
+
+This file can also be imported as a module and contains the following
+functions:
+
+    * usnews_scrapper - returns the path of the output file
+    * main - the main function of the script
+"""
+
 import requests
 import urllib.request
 import time
@@ -16,6 +30,7 @@ from tqdm import tqdm
 args = None
 temp_folder = "./temp"
 data_tablib = None
+called_as_module = False
 
 
 class GradSchool:
@@ -201,7 +216,8 @@ def print_request_error(response):
     print("An error occured while processing the url :\n" + url)
     print("Status Code : " + str(status_code) + "\n\n")
     
-    #response.raise_for_status()
+    if called_as_module:
+        response.raise_for_status()
 
 def get_initial_infos(url, params, headers):
     params["_page"] = "1"
@@ -349,7 +365,8 @@ def run_scrapping_and_saving():
     print_to_outputfile()
 
     cleanup()
-    open_output_file()
+    if called_as_module == False:
+        open_output_file()
 
 def create_argument_from_values(url, output_file_name, pause_time, from_page, to_page):
     arguments = []
@@ -374,12 +391,41 @@ def create_argument_from_values(url, output_file_name, pause_time, from_page, to
     
     return arguments
 
-def usnews_scrapper(url, output_file_name=None, pause_time=None, from_page=None, to_page=None):
+def get_outfile_name_with_working_dir():
+    return os.getcwd() + "\\" + args["outputfilename"]
+
+def usnews_scrapper(url:str, output_file_name:str=None, pause_time:int=None, from_page:int=None, to_page:int=None) -> str:
+    """ Collects data from usnews website and outputs a .xls file.
+
+    Parameters
+    ----------
+    url : str
+        URL of the usnews page from which to collect data.
+    output_file_name : str, optional
+        The expected name of the output file name. The output
+        file name will start with this string.
+    pause_time : int, optional
+        The time between two successive request calls.
+    from_page : int, optional
+        The page number from which function will start to collect data.
+    to_page : int, optional
+        The page number upto which function will collect data.
+
+    Returns
+    -------
+    str
+        The absolute path to the output file.
+    """
+
     arguments = create_argument_from_values(url, output_file_name, pause_time, from_page, to_page)
+    called_as_module = True
     
     global args
     args = vars(parseargs_from_function_call(arguments))
-    run_scrapping_and_saving()
+    run_scrapping_and_saving() 
+    
+    return get_outfile_name_with_working_dir()
+    
 
 def main():
     global args
