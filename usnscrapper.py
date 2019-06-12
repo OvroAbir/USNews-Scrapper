@@ -26,34 +26,27 @@ import sys
 from tqdm import tqdm
 
 
-#Global Variables
-args = None
-temp_folder = "./temp"
-data_tablib = None
-called_as_module = False
-
 
 class GradSchool:
     def __init__(self, name, state, city, rank, is_tied, score, school_url):
-        self.name = name
-        self.state = state
-        self.city = city
+        self.__name = name
+        self.__state = state
+        self.__city = city
         
         try:
-            self.rank = int(rank)
+            self.__rank = int(rank)
         except (ValueError, TypeError) as e:
-            self.rank = rank
-    
-        self.is_tied = is_tied
+            self.__rank = rank
+
+        self.__is_tied = is_tied
         
         try:
-            self.score = float(score)
+            self.__score = float(score)
         except (ValueError, TypeError) as e:
-            self.score = score
+            self.__score = score
 
-        self.school_url = school_url
+        self.__school_url = school_url
 
-    
     @classmethod
     def getFromJSON(cls, json_data):
         name = state = city = rank = is_tied = score = url = None
@@ -97,302 +90,320 @@ class GradSchool:
         return cls(name, state, city, rank, is_tied, score, url)
 
     def __iter__(self):
-        yield self.rank
-        yield self.name
-        yield self.state
-        yield self.city
-        #yield self.is_tied
-        yield self.score
-        yield self.school_url
+        yield self.__rank
+        yield self.__name
+        yield self.__state
+        yield self.__city
+        #yield self.__is_tied
+        yield self.__score
+        yield self.__school_url
 
     def __str__(self):
-        return "name : {} \nstate : {} \ncity : {} \nrank : {} \nis tied : {} \nscore : {} \nschool url : {}".format(self.name, self.state, self.city, self.rank, self.is_tied, self.score, self.school_url)
+        return "name : {} \nstate : {} \ncity : {} \nrank : {} \nis tied : {} \nscore : {} \nschool url : {}".format(self.__name, self.__state, self.__city, self.__rank, self.__is_tied, self.__score, self.__school_url)
 
 
-def modifyparser(parser):
-    defaulturl = "https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings"
-    default_output_file_name = "usnews"
-    default_pause_time = 2
-    default_start_page = 1
-    default_end_page = 100
+class USNewsScrapper:
+    def __init__(self):    
+        self.__args = None
+        self.__temp_folder = "./temp"
+        self.__data_tablib = None
+        self.__called_as_module = False
 
-    url_help = "The usnews address to collect data from. Put the URL within qoutes i.e. \" or \' ."
-    output_help = "The output file name without extension."
-    pause_help = "The pause time between loading pages from usnews. Minimum pause time is 1 sec."
-    from_help = "The page number from which the scrapper starts working."
-    to_help = "The page number to which the scrapper works."
+    def __modifyparser(self, parser):
+        defaulturl = "https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings"
+        default_output_file_name = "usnews"
+        default_pause_time = 2
+        default_start_page = 1
+        default_end_page = 100
 
-    parser.add_argument("-u", "--url", help=url_help, dest="url", default=defaulturl, type=str, required=True)
-    parser.add_argument("-o", help=output_help, dest="outputfilename", default=default_output_file_name)
-    parser.add_argument("-p", "--pause", help=pause_help, dest="pausetime", default=default_pause_time, type=int)
-    parser.add_argument("--from", help=from_help, dest="startpage", default=default_start_page, type=int)
-    parser.add_argument("--to", help=to_help, dest="endpage", default=default_end_page, type=int)
+        url_help = "The usnews address to collect data from. Put the URL within qoutes i.e. \" or \' ."
+        output_help = "The output file name without extension."
+        pause_help = "The pause time between loading pages from usnews. Minimum pause time is 1 sec."
+        from_help = "The page number from which the scrapper starts working."
+        to_help = "The page number to which the scrapper works."
 
-def get_parser_for_parsing():
-    parser = ArgumentParser(description="Collects data from usnews and generates excel file")
-    modifyparser(parser)
+        parser.add_argument("-u", "--url", help=url_help, dest="url", default=defaulturl, type=str, required=True)
+        parser.add_argument("-o", help=output_help, dest="outputfilename", default=default_output_file_name)
+        parser.add_argument("-p", "--pause", help=pause_help, dest="pausetime", default=default_pause_time, type=int)
+        parser.add_argument("--from", help=from_help, dest="startpage", default=default_start_page, type=int)
+        parser.add_argument("--to", help=to_help, dest="endpage", default=default_end_page, type=int)
 
-    return parser
+    def __get_parser_for_parsing(self):
+        parser = ArgumentParser(description="Collects data from usnews and generates excel file")
+        self.__modifyparser(parser)
 
-def parseargs_from_cmd():
-    parser = get_parser_for_parsing()
-    args = parser.parse_args()
+        return parser
 
-    return args
+    def __parseargs_from_cmd(self):
+        parser = self.__get_parser_for_parsing()
+        args = parser.parse_args()
 
-def parseargs_from_function_call(arguments):
-    parser = get_parser_for_parsing()
-    args = parser.parse_args(arguments)
+        return args
 
-    return args
+    def __parseargs_from_function_call(self, arguments):
+        parser = self.__get_parser_for_parsing()
+        args = parser.parse_args(arguments)
 
-def extract_parameters_from_url(url):
-    location_params = {}
-    parse_results = parse.urlsplit(url)
+        return args
 
-    output_sheet_name = "Ranking"
-    
-    locations = parse_results.path.split("/")[2:]
-    program = locations[0]
-    if program != "search":
-        location_params["program"] = program
-        output_sheet_name = program
-    
-    try:
-        specialty = locations[1][:locations[1].rfind("-")]
-        location_params["specialty"] = specialty
-        output_sheet_name = specialty
-    except:
-        pass
-    
-    location_params["_page"] = "dummy"
+    def __extract_parameters_from_url(self, url):
+        location_params = {}
+        parse_results = parse.urlsplit(url)
 
-    global args
-    args["output_sheet_name"] = output_sheet_name.replace("-", " ").title()
+        output_sheet_name = "Ranking"
+        
+        locations = parse_results.path.split("/")[2:]
+        program = locations[0]
+        if program != "search":
+            location_params["program"] = program
+            output_sheet_name = program
+        
+        try:
+            specialty = locations[1][:locations[1].rfind("-")]
+            location_params["specialty"] = specialty
+            output_sheet_name = specialty
+        except:
+            pass
+        
+        location_params["_page"] = "dummy"
 
-    querie_params = dict(parse.parse_qsl(parse_results.query))    
-    params = {**location_params, **querie_params}
+        #global self.__args
+        self.__args["output_sheet_name"] = output_sheet_name.replace("-", " ").title()
 
-    return params
+        querie_params = dict(parse.parse_qsl(parse_results.query))    
+        params = {**location_params, **querie_params}
 
-
-def modify_output_file_name(params):
-    global args
-    adder = ""
-
-    for key in sorted(params.keys()):
-        if params[key] != None and key != "_page":
-            adder = adder + "_" + str(params[key])
-    adder = adder + "_" + str(args["year"])
-    
-    args["outputfilename"] = args["outputfilename"] + adder
+        return params
 
 
-def extract_path_from_url(urlstr):
-    return "https://www.usnews.com/best-graduate-schools/api/search"
+    def __modify_output_file_name(self, params):
+        #global __args
+        adder = ""
 
-def get_temp_file_name(page):
-    return temp_folder + "/" + str(page).zfill(3) + ".txt"
-
-def create_initial_request_params(urlstr, page_num=1):
-    url = extract_path_from_url(urlstr)
-    params = extract_parameters_from_url(urlstr)
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-    }
-
-    return url, params, headers
-
-def cleanup(delete_output=False):
-    if os.path.isdir(temp_folder):
-        shutil.rmtree(temp_folder)
-    if delete_output and os.path.isfile(args["outputfilename"]):
-        os.remove(args["outputfilename"])
-
-def print_request_error(response):
-    status_code = response.status_code
-    url = response.url
-    print("An error occured while processing the url :\n" + url)
-    print("Status Code : " + str(status_code) + "\n\n")
-    
-    if called_as_module:
-        response.raise_for_status()
-
-def get_initial_infos(url, params, headers):
-    params["_page"] = "1"
-    r = requests.get(url=url, params=params, headers=headers)
-
-    if r.status_code != requests.codes.ok:
-        print_request_error(r)
-        return
-
-    response_json = r.json()
-    time.sleep(1)
-    max_page = int(response_json["data"]["totalPages"])
-    year = response_json["data"]["hero"]["year"]
-
-    return max_page, year
+        for key in sorted(params.keys()):
+            if params[key] != None and key != "_page":
+                adder = adder + "_" + str(params[key])
+        adder = adder + "_" + str(self.__args["year"])
+        
+        self.__args["outputfilename"] = self.__args["outputfilename"] + adder
 
 
-def decide_start_and_end_page(max_page, start_page, end_page):
-    end_page = min(max(1, end_page), max_page)
-    start_page = max(1, start_page)
+    def __extract_path_from_url(self, urlstr):
+        return "https://www.usnews.com/best-graduate-schools/api/search"
 
-    if start_page > end_page:
-        start_page = end_page = min(start_page, end_page)
+    def __get_temp_file_name(self, page):
+        return self.__temp_folder + "/" + str(page).zfill(3) + ".txt"
 
-    return (start_page, end_page)
+    def __create_initial_request_params(self, urlstr, page_num=1):
+        url = self.__extract_path_from_url(urlstr)
+        params = self.__extract_parameters_from_url(urlstr)
 
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        }
 
-def scrape_and_save_data(req_params):
-    url, params, headers = req_params
-    
-    cleanup(True)
-    os.mkdir(temp_folder)
-    
-    print("\nCollecting data from U.S.News...")
-    sys.stdout.flush()
+        return url, params, headers
 
-    for page in tqdm(range(args["startpage"], args["endpage"]+1)):
-        params["_page"] = str(page)
+    def __cleanup(self, delete_output=False):
+        if os.path.isdir(self.__temp_folder):
+            shutil.rmtree(self.__temp_folder)
+        if delete_output and os.path.isfile(self.__args["outputfilename"]):
+            os.remove(self.__args["outputfilename"])
 
+    def __print_request_error(self, response):
+        status_code = response.status_code
+        url = response.url
+        print("An error occured while processing the url :\n" + url)
+        print("Status Code : " + str(status_code) + "\n\n")
+        
+        if self.__called_as_module:
+            response.raise_for_status()
+
+    def __get_initial_infos(self, url, params, headers):
+        params["_page"] = "1"
         r = requests.get(url=url, params=params, headers=headers)
 
         if r.status_code != requests.codes.ok:
-            print_request_error(r)
+            __print_request_error(r)
             return
-        
-        f = open(get_temp_file_name(page), "w+")
+
         response_json = r.json()
-        json.dump(response_json, f)
-        f.close()
+        time.sleep(1)
+        max_page = int(response_json["data"]["totalPages"])
+        year = response_json["data"]["hero"]["year"]
+
+        return max_page, year
+
+
+    def __decide_start_and_end_page(self, max_page, start_page, end_page):
+        end_page = min(max(1, end_page), max_page)
+        start_page = max(1, start_page)
+
+        if start_page > end_page:
+            start_page = end_page = min(start_page, end_page)
+
+        return (start_page, end_page)
+
+
+    def __scrape_and_save_data(self, req_params):
+        url, params, headers = req_params
         
-        time.sleep(args["pausetime"])
-
-    modify_output_file_name(params)
-
-def get_column_headers():
-    output_headers = ["Rank", "Graduate School Name", "State", "City", "Score", "US News URL"]
-    return tuple(output_headers)
-
-def append_to_data_tablib(school_datas):
-    global data_tablib
-
-    if data_tablib == None:
-        headers = get_column_headers()
-        data_tablib = tablib.Dataset(title=args["output_sheet_name"])
-        data_tablib.headers = headers
-
-    for school_data in school_datas:
-        g = tuple(GradSchool.getFromJSON(school_data))
-        data_tablib.append(g)
-
-def print_to_outputfile():
-    if data_tablib == None:
-        print("Data Tablib is None. Some error happened")
-        sys.exit()
-
-    filename = args["outputfilename"] = args["outputfilename"] + ".xls"
-    with open(filename, "wb+") as f:
-        f.write(data_tablib.export("xls"))
-        f.close()
-
-def parse_json_from_file():
-    #print("Generating Output file...")
-    locked_q = queue.Queue()
-
-    for filename in sorted(os.listdir(temp_folder)):
-        filename = temp_folder + "/" + filename
-        if os.path.isfile(filename) == False:
-            continue
-        f = open(filename, "r")
+        self.__cleanup(True)
+        os.mkdir(self.__temp_folder)
         
-        data = json.load(f)
+        print("\nCollecting data from U.S.News...")
+        sys.stdout.flush()
+
+        for page in tqdm(range(self.__args["startpage"], self.__args["endpage"]+1)):
+            params["_page"] = str(page)
+
+            r = requests.get(url=url, params=params, headers=headers)
+
+            if r.status_code != requests.codes.ok:
+                self.__print_request_error(r)
+                return
+            
+            f = open(self.__get_temp_file_name(page), "w+")
+            response_json = r.json()
+            json.dump(response_json, f)
+            f.close()
+            
+            time.sleep(self.__args["pausetime"])
+
+        self.__modify_output_file_name(params)
+
+    def __get_column_headers(self):
+        output_headers = ["Rank", "Graduate School Name", "State", "City", "Score", "US News URL"]
+        return tuple(output_headers)
+
+    def __append_to_data_tablib(self, school_datas):
+        if self.__data_tablib == None:
+            headers = self.__get_column_headers()
+            self.__data_tablib = tablib.Dataset(title=self.__args["output_sheet_name"])
+            self.__data_tablib.headers = headers
+
+        for school_data in school_datas:
+            g = tuple(GradSchool.getFromJSON(school_data))
+            self.__data_tablib.append(g)
+
+    def __print_to_outputfile(self):
+        if self.__data_tablib == None:
+            print("Data Tablib is None. Some error happened")
+            sys.exit()
+
+        filename = self.__args["outputfilename"] = self.__args["outputfilename"] + ".xls"
+        with open(filename, "wb+") as f:
+            f.write(self.__data_tablib.export("xls"))
+            f.close()
+
+    def __parse_json_from_file(self):
+        #print("Generating Output file...")
+        locked_q = queue.Queue()
+
+        for filename in sorted(os.listdir(self.__temp_folder)):
+            filename = self.__temp_folder + "/" + filename
+            if os.path.isfile(filename) == False:
+                continue
+            f = open(filename, "r")
+            
+            data = json.load(f)
+            
+            school_datas = data["data"]["items"]
+            self.__append_to_data_tablib(school_datas)
+
+            if "itemsLocked" in data["data"] and data["data"].get("itemsLocked") != None:
+                locked_q.put(data["data"]["itemsLocked"])
+
+            f.close()
+            
+        while locked_q.empty() == False:
+            self.__append_to_data_tablib(locked_q.get())
+
+    def __convert_and_check_args(self, req_params):
+        #global __args
+        self.__args["startpage"] = int(self.__args["startpage"])
+        self.__args["endpage"] = int(self.__args["endpage"])
+        self.__args["pausetime"] = int(self.__args["pausetime"])
         
-        school_datas = data["data"]["items"]
-        append_to_data_tablib(school_datas)
+        self.__args["pausetime"] = min(max(self.__args["pausetime"], 1), 10)
+        self.__args["startpage"] = max(1, self.__args["startpage"])
+        self.__args["endpage"] = max(self.__args["startpage"], self.__args["endpage"])
 
-        if "itemsLocked" in data["data"] and data["data"].get("itemsLocked") != None:
-            locked_q.put(data["data"]["itemsLocked"])
+        url, params, headers = req_params
+        max_page, self.__args["year"] = self.__get_initial_infos(url, params, headers)
+        self.__args["startpage"], self.__args["endpage"] = self.__decide_start_and_end_page(max_page, self.__args["startpage"], self.__args["endpage"])
 
-        f.close()
+        if self.__args["outputfilename"].endswith("xls"):
+            self.__args["outputfilename"] = self.__args["outputfilename"][:-3]
         
-    while locked_q.empty() == False:
-        append_to_data_tablib(locked_q.get())
+        #if (args.url[0] not in ["\'", "\""]) or (args.url[:1] not in ["\'", "\""]):
+        #    print("The URL must start and end with \" or \'")
+        #    sys.exit()
 
-def convert_and_check_args(req_params):
-    global args
-    args["startpage"] = int(args["startpage"])
-    args["endpage"] = int(args["endpage"])
-    args["pausetime"] = int(args["pausetime"])
-    
-    args["pausetime"] = min(max(args["pausetime"], 1), 10)
-    args["startpage"] = max(1, args["startpage"])
-    args["endpage"] = max(args["startpage"], args["endpage"])
+        if "www.usnews.com/best-graduate-schools" not in self.__args["url"]:
+            print("Sorry. Only Graduate School rankings from usnews are supported for now.")
+            sys.exit()
+        
+        msg = "Collecting data from \"{}\" \nFrom page {} to page {} with pause time of {} sec."
+        print(msg.format(self.__args["url"], self.__args["startpage"], self.__args["endpage"], self.__args["pausetime"]))
 
-    url, params, headers = req_params
-    max_page, args["year"] = get_initial_infos(url, params, headers)
-    args["startpage"], args["endpage"] = decide_start_and_end_page(max_page, args["startpage"], args["endpage"])
-
-    if args["outputfilename"].endswith("xls"):
-        args["outputfilename"] = args["outputfilename"][:-3]
-    
-    #if (args.url[0] not in ["\'", "\""]) or (args.url[:1] not in ["\'", "\""]):
-    #    print("The URL must start and end with \" or \'")
-    #    sys.exit()
-
-    if "www.usnews.com/best-graduate-schools" not in args["url"]:
-        print("Sorry. Only Graduate School rankings from usnews are supported for now.")
-        sys.exit()
-    
-    msg = "Collecting data from \"{}\" \nFrom page {} to page {} with pause time of {} sec."
-    print(msg.format(args["url"], args["startpage"], args["endpage"], args["pausetime"]))
-
-    
-def open_output_file():
-    filename = args["outputfilename"]
-    os.startfile(filename)
+        
+    def __open_output_file(self):
+        filename = self.__args["outputfilename"]
+        os.startfile(filename)
 
 
-def run_scrapping_and_saving():
-    req_params = create_initial_request_params(args["url"])
-    convert_and_check_args(req_params)
+    def __run_scrapping_and_saving(self):
+        req_params = self.__create_initial_request_params(self.__args["url"])
+        self.__convert_and_check_args(req_params)
 
-    scrape_and_save_data(req_params)
+        self.__scrape_and_save_data(req_params)
 
-    parse_json_from_file()
-    print_to_outputfile()
+        self.__parse_json_from_file()
+        self.__print_to_outputfile()
 
-    cleanup()
-    if called_as_module == False:
-        open_output_file()
+        self.__cleanup()
+        if self.__called_as_module == False:
+            self.__open_output_file()
 
-def create_argument_from_values(url, output_file_name, pause_time, from_page, to_page):
-    arguments = []
-    arguments.append("--url")
-    arguments.append(url)
+    def __create_argument_from_values(self, url, output_file_name, pause_time, from_page, to_page):
+        arguments = []
+        arguments.append("--url")
+        arguments.append(url)
 
-    if output_file_name is not None:
-        arguments.append("-o")
-        arguments.append(str(output_file_name))
+        if output_file_name is not None:
+            arguments.append("-o")
+            arguments.append(str(output_file_name))
 
-    if pause_time is not None:
-        arguments.append("--pause")
-        arguments.append(str(pause_time))
+        if pause_time is not None:
+            arguments.append("--pause")
+            arguments.append(str(pause_time))
 
-    if from_page is not None:
-        arguments.append("--from")
-        arguments.append(str(from_page))
+        if from_page is not None:
+            arguments.append("--from")
+            arguments.append(str(from_page))
 
-    if to_page is not None:
-        arguments.append("--to")
-        arguments.append(str(to_page))
-    
-    return arguments
+        if to_page is not None:
+            arguments.append("--to")
+            arguments.append(str(to_page))
+        
+        return arguments
 
-def get_outfile_name_with_working_dir():
-    return os.getcwd() + "\\" + args["outputfilename"]
+    def __get_outfile_name_with_working_dir(self):
+        return os.getcwd() + "\\" + self.__args["outputfilename"]
+
+    def usnews_scrapper_for_cmd(self):
+        self.__args = vars(self.__parseargs_from_cmd())
+        self.__run_scrapping_and_saving()
+
+    def usnews_scrapper_for_function_call(self, url, output_file_name, pause_time, from_page, to_page):    
+        arguments = self.__create_argument_from_values(url, output_file_name, pause_time, from_page, to_page)
+        self.__called_as_module = True
+        
+        self.__args = vars(self.__parseargs_from_function_call(arguments))
+        self.__run_scrapping_and_saving() 
+        
+        return self.__get_outfile_name_with_working_dir()
 
 def usnews_scrapper(url:str, output_file_name:str=None, pause_time:int=None, from_page:int=None, to_page:int=None) -> str:
     """ Collects data from usnews website and outputs a (.xls) file.
@@ -416,22 +427,14 @@ def usnews_scrapper(url:str, output_file_name:str=None, pause_time:int=None, fro
     str
         The absolute path to the output file.
     """
-
-    arguments = create_argument_from_values(url, output_file_name, pause_time, from_page, to_page)
-    called_as_module = True
     
-    global args
-    args = vars(parseargs_from_function_call(arguments))
-    run_scrapping_and_saving() 
-    
-    return get_outfile_name_with_working_dir()
+    usnews_scrapper_obj = USNewsScrapper()
+    return usnews_scrapper_obj.usnews_scrapper_for_function_call(url, output_file_name, pause_time, from_page, to_page)
     
 
-def main():
-    global args
-    args = vars(parseargs_from_cmd())
-    run_scrapping_and_saving()
-
+def _main():
+    usnews_scrapper_obj = USNewsScrapper()
+    usnews_scrapper_obj.usnews_scrapper_for_cmd()
 
 if __name__ == "__main__":
-    main()
+    _main()
