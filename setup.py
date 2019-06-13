@@ -2,14 +2,14 @@ from distutils.core import setup
 from os import path
 
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md')) as f:
+with open(path.join(this_directory, 'README.rst')) as f:
     long_description = f.read()
 
 
 setup(
     name = 'usnews-scrapper',
     packages = ['usnews-scrapper'],
-    version = 'v0.4',
+    version = 'v0.5',
     license='MIT',
     description = 'Collects Grad School data from https://www.usnews.com and gives output in a .xls file.',
     author = 'Joy Ghosh',
@@ -33,6 +33,6 @@ setup(
       'Programming Language :: Python :: 3.6',
       'Programming Language :: Python :: 3.7',
       ],
-    long_description_content_type='text/markdown',
-    long_description=long_description,
+    long_description_content_type='text/x-rst',
+    long_description=long_description
 )
