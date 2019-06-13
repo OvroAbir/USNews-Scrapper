@@ -1,16 +1,24 @@
 from distutils.core import setup
+from os import path
+
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 
 setup(
     name = 'usnews-scrapper',
     packages = ['usnews-scrapper'],
-    version = '0.1',
+    version = 'v0.1',
     license='MIT',
     description = 'Collects Grad School data from https://www.usnews.com and gives output in a .xls file.',
     author = 'Joy Ghosh',
     author_email = 'joyghosh826@gmail.com',
     url = 'https://www.ijoyghosh.com',
-    download_url = 'https://github.com/user/reponame/archive/v_01.tar.gz',    # I explain this later on
+    #download_url = 'https://github.com/user/reponame/archive/v_01.tar.gz',    # I explain this later on
     keywords = ['scraper', 'usnews', 'graduate', 'grad', 'school', 'university', 'crawler'],
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     install_requires=[
         'requests==2.22.0',
         'tablib==0.13.0',
