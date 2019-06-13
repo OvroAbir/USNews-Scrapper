@@ -1,9 +1,9 @@
 from distutils.core import setup
 from os import path
 
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+#this_directory = path.abspath(path.dirname(__file__))
+#with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+#    long_description = f.read()
 
 
 setup(
@@ -17,8 +17,8 @@ setup(
     url = 'https://www.ijoyghosh.com',
     download_url = 'https://github.com/OvroAbir/USNews-Scrapper/archive/v0.1.tar.gz',
     keywords = ['scraper', 'usnews', 'graduate', 'grad', 'school', 'university', 'crawler'],
-    long_description=long_description,
-    long_description_content_type='text/markdown',
+    #long_description=long_description,
+    #long_description_content_type='text/markdown',
     install_requires=[
         'requests==2.22.0',
         'tablib==0.13.0',
