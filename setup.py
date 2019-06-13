@@ -15,7 +15,7 @@ setup(
     author = 'Joy Ghosh',
     author_email = 'joyghosh826@gmail.com',
     url = 'https://www.ijoyghosh.com',
-    #download_url = 'https://github.com/user/reponame/archive/v_01.tar.gz',    # I explain this later on
+    download_url = 'https://github.com/OvroAbir/USNews-Scrapper/archive/v0.1.tar.gz',
     keywords = ['scraper', 'usnews', 'graduate', 'grad', 'school', 'university', 'crawler'],
     long_description=long_description,
     long_description_content_type='text/markdown',
