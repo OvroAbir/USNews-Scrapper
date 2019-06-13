@@ -6,6 +6,7 @@ U.S.News Scrapper is a Python library that collect data from the website of usne
 
 Setup
 =====
+The source code link to github is usnews_scrapper_github_.
 
 First clone the repository. Then go to the repository and install the required packages using pip_
 
@@ -47,3 +48,4 @@ Authors
 .. _usnews: https://www.usnews.com/best-graduate-schools
 .. _pip: https://pip.pypa.io/en/stable/
 .. _www.ijoyghosh.com : https://www.ijoyghosh.com
+.. _usnews_scrapper_github : https://github.com/OvroAbir/USNews-Scrapper
