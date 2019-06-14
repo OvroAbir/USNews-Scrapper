@@ -9,7 +9,7 @@ with open(path.join(this_directory, 'README.rst')) as f:
 setup(
     name = 'usnews-scrapper',
     packages = ['usnews-scrapper'],
-    version = 'v0.5',
+    version = 'v0.6',
     license='MIT',
     description = 'Collects Grad School data from https://www.usnews.com and gives output in a .xls file.',
     author = 'Joy Ghosh',

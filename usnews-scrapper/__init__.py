@@ -1,1 +1,1 @@
-from usnews_scrapper import usnews_scrapper
+from usnews-scrapper import usnews_scrapper
