@@ -9,7 +9,7 @@ This file can also be imported as a module and contains the following
 functions:
 
     * usnews_scrapper - returns the path of the output file
-    * main - the main function of the script
+    * _main - the main function of the script
 """
 
 import requests
