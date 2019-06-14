@@ -340,7 +340,7 @@ class USNewsScrapper:
         #    print("The URL must start and end with \" or \'")
         #    sys.exit()
 
-        if "www.usnews.com/best-graduate-schools" not in self.__args["url"]:
+        if "usnews.com/best-graduate-schools" not in self.__args["url"]:
             print("Sorry. Only Graduate School rankings from usnews are supported for now.")
             sys.exit()
         
