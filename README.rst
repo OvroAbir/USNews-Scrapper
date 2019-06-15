@@ -6,18 +6,14 @@ U.S.News Scrapper is a Python library that collect data from the website of usne
 
 Setup
 =====
-The source code link to github is usnews_scrapper_github_.
+*Visit github_ page for detailed informations.*
 
-First clone the repository. Then go to the repository and install the required packages using pip_
-
-    | $ git clone https://github.com/OvroAbir/USNews-Scrapper.git
-    | $ cd USNews-Scrapper
-    | $ pip install -r requirements.txt
+    | $ pip install usnews_scrapper
 
 
 Usage
 =====
-usage: python main.py [-h] -u URL [-o OUTPUTFILENAME] [-p PAUSETIME] [--from STARTPAGE] [--to ENDPAGE]
+usage: python usnews_scrapper.py [-h] -u URL [-o OUTPUTFILENAME] [-p PAUSETIME] [--from STARTPAGE] [--to ENDPAGE]
 
 Collects data from usnews and generates excel file
 
@@ -36,7 +32,7 @@ Examples
 Copy the address of the page from usnews website and in the Command Prompt and enter this command -
 
     | $ cd USNews-Scrapper
-    | $ python main.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings" -o file_name -p 2 --from=2 --to=5 
+    | $ python usnews_scrapper.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings" -o file_name -p 2 --from=2 --to=5 
 
 The output file will be saved in current directory under the name of file_name_*.xls 
 
@@ -48,4 +44,4 @@ Authors
 .. _usnews: https://www.usnews.com/best-graduate-schools
 .. _pip: https://pip.pypa.io/en/stable/
 .. _www.ijoyghosh.com : https://www.ijoyghosh.com
-.. _usnews_scrapper_github : https://github.com/OvroAbir/USNews-Scrapper
+.. _github : https://github.com/OvroAbir/USNews-Scrapper
