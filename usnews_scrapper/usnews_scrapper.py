@@ -303,7 +303,8 @@ class USNewsScrapper:
         locked_q = queue.Queue()
 
         for filename in sorted(os.listdir(self.__temp_folder)):
-            filename = self.__temp_folder + "/" + filename
+            filename = os.path.join(self.__temp_folder, filename)
+            #filename = self.__temp_folder + "/" + filename
             if os.path.isfile(filename) == False:
                 continue
             f = open(filename, "r")
@@ -393,7 +394,7 @@ class USNewsScrapper:
         return arguments
 
     def __get_outfile_name_with_working_dir(self):
-        return os.getcwd() + "\\" + self.__args["outputfilename"]
+        return os.path.join(os.getcwd(), self.__args["outputfilename"])
 
     def usnews_scrapper_for_cmd(self):
         self.__args = vars(self.__parseargs_from_cmd())
