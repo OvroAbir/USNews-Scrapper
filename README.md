@@ -28,7 +28,8 @@ Collects data from usnews and generates excel file.
 
 Necessary Arguments:
 ```
--u URL, --url URL     		        The usnews address to collect data from. Put the URL within qoutes i.e. " or ' .
+-u URL, --url URL     		        The usnews address to collect data from. 
+                                        Put the URL within qoutes i.e. " or ' .
 ```
 Optional Arguments:
 ```
@@ -62,7 +63,8 @@ The output file will be saved in current directory under the name of `file_name_
 
 ```python
 >>> from usnews_scrapper import unsc
->>> output_file = unsc("https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings", output_file_name="output", pause_time=2, from_page=2, to_page=5)
+>>> url = "https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings"
+>>> output_file = unsc(url=url, output_file_name="output", pause_time=2, from_page=2, to_page=5)
 ```
 The output_file will contain the absolute path to the output file.
 
