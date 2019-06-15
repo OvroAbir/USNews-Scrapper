@@ -213,10 +213,11 @@ class USNewsScrapper:
     def __print_request_error(self, response):
         status_code = response.status_code
         url = response.url
-        print("An error occured while processing the url :\n" + url)
-        print("Status Code : " + str(status_code) + "\n\n")
         
-        if self.__called_as_module:
+        if self.__called_as_module == False:
+            print("An error occured while processing the url :\n" + url)
+            print("Status Code : " + str(status_code) + "\n\n")
+        else:
             response.raise_for_status()
 
     def __get_initial_infos(self, url, params, headers):
@@ -251,10 +252,11 @@ class USNewsScrapper:
         self.__cleanup(True)
         os.mkdir(self.__temp_folder)
         
-        print("\nCollecting data from U.S.News...")
+        if self.__called_as_module == False:
+            print("\nCollecting data from U.S.News...")
         sys.stdout.flush()
 
-        for page in tqdm(range(self.__args["startpage"], self.__args["endpage"]+1)):
+        for page in tqdm(range(self.__args["startpage"], self.__args["endpage"]+1), disable=self.__called_as_module):
             params["_page"] = str(page)
 
             r = requests.get(url=url, params=params, headers=headers)
@@ -345,7 +347,8 @@ class USNewsScrapper:
             sys.exit()
         
         msg = "Collecting data from \"{}\" \nFrom page {} to page {} with pause time of {} sec."
-        print(msg.format(self.__args["url"], self.__args["startpage"], self.__args["endpage"], self.__args["pausetime"]))
+        if self.__called_as_module == False:
+            print(msg.format(self.__args["url"], self.__args["startpage"], self.__args["endpage"], self.__args["pausetime"]))
 
         
     def __open_output_file(self):
