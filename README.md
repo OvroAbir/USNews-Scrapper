@@ -42,7 +42,8 @@ Optional Arguments:
 ```
 
 ### Module usage
-`usnews_scrapper.scrapper()` takes input the `url` as string. The other arguments are optional. This function will return absolute path to the output file.
+`usnews_scrapper.unsc()` takes input the `url` as string. The other arguments are optional. This function will return absolute path to the output file.
+
 ```python
 from usnews_scrapper import unsc
 unsc(url:str, output_file_name:str, pause_time:int, from_page:int, to_page:int) -> str
