@@ -9,13 +9,13 @@ with open(path.join(this_directory, 'README.rst')) as f:
 setup(
     name = 'usnews_scrapper',
     packages = ['usnews_scrapper'],
-    version = 'v0.10',
+    version = 'v0.1',
     license='MIT',
     description = 'Collects Grad School data from https://www.usnews.com and gives output in a .xls file.',
     author = 'Joy Ghosh',
     author_email = 'joyghosh826@gmail.com',
     url = 'https://www.ijoyghosh.com',
-    download_url = 'https://github.com/OvroAbir/USNews-Scrapper/archive/v0.1.tar.gz',
+    download_url = 'https://github.com/OvroAbir/USNews-Scrapper/archive/v0.3.tar.gz',
     keywords = ['scraper', 'usnews', 'graduate', 'grad', 'school', 'university', 'crawler'],
     install_requires=[
         'requests==2.22.0',

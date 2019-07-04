@@ -6,7 +6,7 @@ U.S.News Scrapper is a Python library that collects data from the website of [us
 Make sure that [Python 3](https://www.python.org/downloads) is already installed in your system.
 ### Using pip
 ```bash
-$ pip install usnews_scrapper
+$ pip install usnews-scrapper
 ```
 alternatively you can install by [Using source](#using-source)
 
@@ -23,7 +23,7 @@ Then it can be used via command line. See [Command line example](command-line-ex
 
 ### Command line usage
 ```
-usnews_scrapper.py [-h] -u URL [-o OUTPUTFILENAME] [-p PAUSETIME] [--from STARTPAGE] [--to ENDPAGE]
+python -m usnews_scrapper [-h] -u URL [-o OUTPUTFILENAME] [-p PAUSETIME] [--from STARTPAGE] [--to ENDPAGE]
 ```
 Collects data from usnews and generates excel file.
 
@@ -55,10 +55,16 @@ See [Module example](#module-example) for examples.
 Copy the address of the page from usnews website and in the Command Prompt and enter this command -
 
 ```bash
+$ python -m usnews_scrapper --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings" -o file_name -p 2 --from=2 --to=5 
+```
+
+If you want to run from the source, then enter this command instead.
+
+```bash
 $ cd USNews-Scrapper/usnews_scrapper/
 $ python usnews_scrapper.py --url="https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings" -o file_name -p 2 --from=2 --to=5 
 ```
-The output file will be saved in current directory under the name of `file_name_*.xls`. 
+In both cases, The output file will be saved in current directory under the name of `file_name_*.xls`. 
 
 ### Module example
 
