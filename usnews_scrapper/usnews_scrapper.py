@@ -19,7 +19,7 @@ import json
 import queue
 from argparse import ArgumentParser
 from urllib import parse
-import os
+import os, sys, subprocess
 import shutil
 import tablib
 import sys
@@ -354,7 +354,12 @@ class USNewsScrapper:
         
     def __open_output_file(self):
         filename = self.__args["outputfilename"]
-        os.startfile(filename)
+
+        if sys.platform == "win32":
+            os.startfile(filename)
+        else:
+            opener ="open" if sys.platform == "darwin" else "xdg-open"
+            subprocess.call([opener, filename])
 
 
     def __run_scrapping_and_saving(self):
