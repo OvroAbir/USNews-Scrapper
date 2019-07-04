@@ -1,6 +1,6 @@
 # U.S.News-Scrapper
 
-U.S.News Scrapper is a Python library that collect data from the website of [usnews](https://www.usnews.com/best-graduate-schools) and output those data in a file for offline usage. Till now, it is only capable of collecting graduate schools data and output it in `.xls` format. After generating the `.xls` file, it will be opened by default excel file opener.
+U.S.News Scrapper is a Python library that collects data from the website of [usnews.com](https://www.usnews.com/best-graduate-schools) and output those data in a file for offline usage. Till now, it is only capable of collecting graduate schools data and output it in `.xls` format. After generating the `.xls` file, it will be opened by default excel file opener.
 
 ## Setup
 Make sure that [Python 3](https://www.python.org/downloads) is already installed in your system.
@@ -17,6 +17,7 @@ $ git clone https://github.com/OvroAbir/USNews-Scrapper.git
 $ cd USNews-Scrapper
 $ pip install -r requirements.txt
 ```
+Then it can be used via command line. See [Command line example](command-line-example)
 
 ## Usage
 
