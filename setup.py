@@ -21,7 +21,7 @@ setup(
         'requests==2.22.0',
         'tablib==0.13.0',
         'tqdm==4.32.1',
-        'urllib3==1.25.2'
+        'urllib3==1.25.8'
         ],
     classifiers=[
       'Development Status :: 3 - Alpha',      # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
